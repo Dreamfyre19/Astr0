@@ -26,6 +26,10 @@ function isalpha(src: string) {
     return src.toUpperCase() != src.toLowerCase();
 }
 
+function isskippable(str: string) {
+    return str == ' ' || str == '\n' || str == '\t'
+}
+
 function isint(str: string) {
     const c = str.charCodeAt(0);
     const bounds = ['0'.charCodeAt(0), '9'.charCodeAt(0)];
@@ -56,7 +60,7 @@ export function tokenize(sourceCode: string): Token[] {
                     num += src.shift();
                 }
 
-                tokens.push(token(src.shift(), TokenType.Number))
+                tokens.push(token(num, TokenType.Number))
             }
             else if (isalpha(src[0])) {
                 let ident = '';
@@ -72,8 +76,20 @@ export function tokenize(sourceCode: string): Token[] {
                     tokens.push(token(ident, reserved));
                 }
             }
+            else if (isskippable(src[0])) {
+                src.shift();
+            }
+            else {
+                console.log("Unreconized character found in source: ", src[0]);
+                Deno.exit(1);
+            }
         }
     }
 
     return tokens;
+}
+
+const source = await Deno.readTextFile("./test.ast")
+for (const token of tokenize(source)) {
+    console.log(token);
 }
